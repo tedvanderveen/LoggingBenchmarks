@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 namespace LoggingBenchmarks
 {
     [SuppressMessage("ReSharper", "InconsistentNaming")]
-    public class ClassUsingOptimisedLogging
+    public class ClassUsingOptimisedLogging : ILogging
     {
         private readonly ILogger _logger;
 
@@ -14,6 +14,8 @@ namespace LoggingBenchmarks
         public void LogOnceNoParams() => Log.InformationalMessageNoParams(_logger);
 
         public void LogOnceOneParam(string value1) => Log.InformationalMessageOneParam(_logger, value1);
+
+        public void LogOnceOneParam(int value1) => Log.InformationalMessageOneParam(_logger, value1);
 
         public void LogOnceTwoParams(string value1, int value2) => Log.InformationalMessageTwoParams(_logger, value1, value2);
 
@@ -38,6 +40,11 @@ namespace LoggingBenchmarks
                 Events.Started,
                 "This is a message with one param! {Param1}");
 
+            private static readonly Action<ILogger, int, Exception> _informationLoggerMessageOneIntParam = LoggerMessage.Define<int>(
+                LogLevel.Information,
+                Events.Started,
+                "This is a message with one param! {Param1}");
+
             private static readonly Action<ILogger, string, int, Exception> _informationLoggerMessage = LoggerMessage.Define<string, int>(
                 LogLevel.Information,
                 Events.Started,
@@ -51,7 +58,9 @@ namespace LoggingBenchmarks
             public static void InformationalMessageNoParams(ILogger logger) => _informationLoggerMessageNoParams(logger, null);
 
             public static void InformationalMessageOneParam(ILogger logger, string value1) => _informationLoggerMessageOneParam(logger, value1, null);
-        
+
+            public static void InformationalMessageOneParam(ILogger logger, int value1) => _informationLoggerMessageOneIntParam(logger, value1, null);
+
             public static void InformationalMessageTwoParams(ILogger logger, string value1, int value2) => _informationLoggerMessage(logger, value1, value2, null);
 
             public static void DebugMessage(ILogger logger, string value1, int value2) => _debugLoggerMessage(logger, value1, value2, null);

@@ -13,8 +13,9 @@ namespace LoggingBenchmarks
     [MemoryDiagnoser]
     public class NoParamLoggingBenchmarks
     {
-        private ClassUsingStandardLogging _sut1;
-        private ClassUsingOptimisedLogging _sut2;
+        private ILogging _sut1;
+        private ILogging _sut2;
+        private ILogging _sut3;
 
         [GlobalSetup]
         public void Setup()
@@ -31,10 +32,11 @@ namespace LoggingBenchmarks
 
             _sut1 = new ClassUsingStandardLogging(logger);
             _sut2 = new ClassUsingOptimisedLogging(logger);
+            _sut3 = CustomEventSource.Log;
         }
 
         [Benchmark(Baseline = true)]
-        public void StandardLoggingNoParams() => _sut1.LogOnceWithNoParam();
+        public void StandardLoggingNoParams() => _sut1.LogOnceNoParams();
 
         [Benchmark]
         public void OptimisedLoggingNoParams() => _sut2.LogOnceNoParams();
@@ -43,8 +45,9 @@ namespace LoggingBenchmarks
     [MemoryDiagnoser]
     public class OneParamLoggingBenchmarks
     {
-        private ClassUsingStandardLogging _sut1;
-        private ClassUsingOptimisedLogging _sut2;
+        private ILogging _sut1;
+        private ILogging _sut2;
+        private ILogging _sut3;
 
         private const string Value1 = "Value";
 
@@ -63,23 +66,32 @@ namespace LoggingBenchmarks
 
             _sut1 = new ClassUsingStandardLogging(logger);
             _sut2 = new ClassUsingOptimisedLogging(logger);
+            _sut3 = CustomEventSource.Log;
         }
 
         [Benchmark(Baseline = true)]
-        public void StandardLoggingOneParam() => _sut1.LogOnceWithOneParam(Value1);
+        public void StandardLoggingOneParam() => _sut1.LogOnceOneParam(1234567890);
 
         [Benchmark]
-        public void OptimisedLoggingOneParam() => _sut2.LogOnceOneParam(Value1);
+        public void OptimisedLoggingOneParam() => _sut2.LogOnceOneParam(1234567890);
+
+        [Benchmark]
+        public void EventSourceLoggingOneParam() => _sut3.LogOnceOneParam(1234567890);
     }
 
     [MemoryDiagnoser]
     public class TwoParamLoggingBenchmarks
     {
-        private ClassUsingStandardLogging _sut1;
-        private ClassUsingOptimisedLogging _sut2;
+        private ILogging _sut1;
+        private ILogging _sut2;
+        private ILogging _sut3;
 
-        private const string Value1 = "Value";
+        private string Value1;
         private const int Value2 = 1000;
+
+        [Params(10, 100, 1000)]
+        public int LogMessageLength { get; set; }
+
 
         [GlobalSetup]
         public void Setup()
@@ -94,15 +106,21 @@ namespace LoggingBenchmarks
 
             var logger = loggerFactory.CreateLogger("TEST");
 
+            Value1 = new string('a', LogMessageLength);
+
             _sut1 = new ClassUsingStandardLogging(logger);
             _sut2 = new ClassUsingOptimisedLogging(logger);
+            _sut3 = CustomEventSource.Log;
         }
 
         [Benchmark(Baseline = true)]
-        public void StandardLoggingTwoParams() => _sut1.LogOnceWithTwoParams(Value1, Value2);
+        public void StandardLoggingTwoParams() => _sut1.LogOnceTwoParams(Value1, Value2);
 
         [Benchmark]
         public void OptimisedLoggingTwoParams() => _sut2.LogOnceTwoParams(Value1, Value2);
+
+        [Benchmark]
+        public void EventSourceLoggingTwoParams() => _sut3.LogOnceTwoParams(Value1, Value2);
     }
 
     [MemoryDiagnoser]
